@@ -1,6 +1,7 @@
 ---
 title: "Clustering the merged data"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -16,7 +17,6 @@ output:
 linkcsv="https://github.com/tjvijapurapu/542_ComputationalThinking/raw/main/UpdatedTJHemaSamik.csv"
 
 mydata2=read.csv(linkcsv)
-mydata2
 ```
 ## Preparing data
 ### a. Choosing the following three variables - lessthan5_50, FPI, and FDI for the clustering analysis
@@ -60,6 +60,9 @@ res.pam = pam(x=Clus_Mydata2_Dist, k=NumCluster, cluster.only = F)
 ```{r}
 library(factoextra)
 fviz_silhouette(res.pam)
+```
+```{r}
+
 ```
 ### 2.2 Reporting and detecting anomalies
 #### a. Individual silhouettes are saved in the column sil_width
