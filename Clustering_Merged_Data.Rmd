@@ -1,6 +1,8 @@
 ---
 title: "Clustering the merged data"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ## Reading the cleaned and merged data that was prepared in Python
@@ -44,7 +46,6 @@ set.seed(234)
 ```{r}
 library(cluster)
 Clus_Mydata2_Dist = daisy(x=Clus_Mydata2) #daisy is only for numerical data
-Clus_Mydata2_Dist
 ```
 ## Partitioning technique
 ### 1. Applying function by using 4 clusters
