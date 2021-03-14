@@ -3,56 +3,92 @@ title: "Clustering the merged data"
 output: html_notebook
 ---
 
-Reading the data
+## Reading the cleaned and merged data that was prepared in Python
+#### The data "UpdatedTJHemaSamik.csv" has the following columns,
+#####    Country - Name of the Country
+#####    lessthan5_50 - percentage of people earning less than $5.5 per day
+#####   FPI - Quantity of Forest Products Imported per year in 2019
+#####   FDI - Financial Development Index
+#####   FIEI - Financial Institutions Efficiency Index
 ```{r}
 linkcsv="https://github.com/tjvijapurapu/542_ComputationalThinking/raw/main/UpdatedTJHemaSamik.csv"
 
 mydata2=read.csv(linkcsv)
 mydata2
 ```
-Preparing data
+## Preparing data
+### a. Choosing the following three variables - lessthan5_50, FPI, and FDI for the clustering analysis
 ```{r}
 Clus_Mydata2 = mydata2[,c('lessthan5_50', 'FPI', 'FDI')]
 summary(Clus_Mydata2)
 ```
-Scaling the data
+### b. Scaling the data: 
+#### This step scales all the values belonging to different scale to a uniform scale. This step is essential for comparing different types of values. The scaled data is stored into a new variable called Clus_Mydata2
 ```{r}
 Clus_Mydata2 = scale(Clus_Mydata2)
 summary(Clus_Mydata2)
 ```
-Renaming subset indexes
+### c. Renaming subset indexes and verifying the input
+#### This step renames the indexes with the country names for ease of understanding
 ```{r}
 row.names(Clus_Mydata2) = mydata2$Country
 head(Clus_Mydata2)
 ```
-Setting the seed for replicability
+### d. Setting the seed for replicability
+#### By setting seed even if the code is rerun we can ensure getting same results
 ```{r}
 set.seed(234)
 ```
-Deciding distance method and computing distance matrix
+### e. Deciding distance method and computing distance matrix
+#### The distance of each value from the mean is calculated. This step is essential to understand the outliers and anomalies in the data. The final distance matrix is stored into a new variable called "Clus_Mydata2_Dist"
 ```{r}
 library(cluster)
 Clus_Mydata2_Dist = daisy(x=Clus_Mydata2) #daisy is only for numerical data
 Clus_Mydata2_Dist
 ```
-Partitioning technique
+## Partitioning technique
+### 1. Applying function by using 4 clusters
+#### Using a set of k mediods (4 in this case), the pam function constructs k clusters by assigning each observation to the nearest mediod.
 ```{r}
 NumCluster = 4
 res.pam = pam(x=Clus_Mydata2_Dist, k=NumCluster, cluster.only = F)
 ```
-Visualizing the silhouette plot
+## 2.Evaluate results
+### 2.1 Visualizing the silhouette plot and reporting average silhouettes
+#### The four clusters produced using the pam function are visualized. The plot above the base line are positive silhouettes and the ones below are negative. The negative silhouettes are considered as anomalies in the data.
 ```{r}
 library(factoextra)
 fviz_silhouette(res.pam)
 ```
-Detecting anomalies
+### 2.2 Reporting and detecting anomalies
+#### a. Individual silhouettes are saved in the column sil_width
 ```{r}
 pamEval = data.frame(res.pam$silinfo$widths)
 head(pamEval)
 ```
-Request negative silhouettes
+#### b. Requesting and filtering out negative silhouettes
+##### If this happens in a research, the negative silhouette data are usually analyzed and the reasoning behind its anomaly is found. These data can be either removed or revisited and worked till positive silhouettes are obtained. However, revisiting or removing data is beyond the scope of this project.
 ```{r}
 pamEval[pamEval$sil_width<0,]
+```
+## Hierarchizing: agglomerative
+### 1. Applying function
+#### "agnes" function constructs a hierarchy of clusters. Two indices that are similar are clustered together and this keeps on getting built until all the values are clustered.
+```{r}
+library(factoextra)
+
+res.agnes= hcut(Clus_Mydata2_Dist, 
+                k = NumCluster,isdiss=T,
+                hc_func='agnes',
+                hc_method = "ward.D2")
+```
+## 2. Evaluate results
+### 2.1 Reporting dendrogram
+#### The hierarchy of clusters produced by agnes function is displayed as dendrogram
+```{r}
+library(factoextra)
+library(ggplot2)
+fviz_dend(res.agnes,k=NumCluster, cex = 0.7, horiz = T)
 ```
 
 
