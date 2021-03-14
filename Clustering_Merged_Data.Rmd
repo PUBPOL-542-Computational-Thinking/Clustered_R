@@ -18,35 +18,41 @@ linkcsv="https://github.com/tjvijapurapu/542_ComputationalThinking/raw/main/Upda
 
 mydata2=read.csv(linkcsv)
 ```
+
 ## Preparing data
 ### a. Choosing the following three variables - lessthan5_50, FPI, and FDI for the clustering analysis
 ```{r}
 Clus_Mydata2 = mydata2[,c('lessthan5_50', 'FPI', 'FDI')]
 summary(Clus_Mydata2)
 ```
+
 ### b. Scaling the data: 
 #### This step scales all the values belonging to different scale to a uniform scale. This step is essential for comparing different types of values. The scaled data is stored into a new variable called Clus_Mydata2
 ```{r}
 Clus_Mydata2 = scale(Clus_Mydata2)
 summary(Clus_Mydata2)
 ```
+
 ### c. Renaming subset indexes and verifying the input
 #### This step renames the indexes with the country names for ease of understanding
 ```{r}
 row.names(Clus_Mydata2) = mydata2$Country
 head(Clus_Mydata2)
 ```
+
 ### d. Setting the seed for replicability
 #### By setting seed even if the code is rerun we can ensure getting same results
 ```{r}
 set.seed(234)
 ```
+
 ### e. Deciding distance method and computing distance matrix
 #### The distance of each value from the mean is calculated. This step is essential to understand the outliers and anomalies in the data. The final distance matrix is stored into a new variable called "Clus_Mydata2_Dist"
 ```{r}
 library(cluster)
 Clus_Mydata2_Dist = daisy(x=Clus_Mydata2) #daisy is only for numerical data
 ```
+
 ## Partitioning technique
 ### 1. Applying function by using 4 clusters
 #### Using a set of k mediods (4 in this case), the pam function constructs k clusters by assigning each observation to the nearest mediod.
@@ -54,27 +60,50 @@ Clus_Mydata2_Dist = daisy(x=Clus_Mydata2) #daisy is only for numerical data
 NumCluster = 4
 res.pam = pam(x=Clus_Mydata2_Dist, k=NumCluster, cluster.only = F)
 ```
-## 2.Evaluate results
-### 2.1 Visualizing the silhouette plot and reporting average silhouettes
-#### The four clusters produced using the pam function are visualized. The plot above the base line are positive silhouettes and the ones below are negative. The negative silhouettes are considered as anomalies in the data.
+
+### 2.Clustering results
+#### 2.1 Add results to the original data frame
+```{r}
+mydata2$pam=as.factor(res.pam$clustering)
+```
+
+#### 2.2 Query data frame as required. Some examples are given here
+#### Example 1
+```{r}
+mydata2[mydata2$pam==1,'Country']
+```
+
+#### Example 2
+```{r}
+mydata2[mydata2$Country=="Ukraine",'pam']
+```
+
+#### 2.3 Reporting table of clusters
+```{r}
+table(mydata2$pam)
+```
+
+### 3.Evaluate results
+#### 3.1 Visualizing the silhouette plot and reporting average silhouettes
+##### The four clusters produced using the pam function are visualized. The plot above the base line are positive silhouettes and the ones below are negative. The negative silhouettes are considered as anomalies in the data.
 ```{r}
 library(factoextra)
 fviz_silhouette(res.pam)
 ```
-```{r}
 
-```
-### 2.2 Reporting and detecting anomalies
+#### 3.2 Reporting and detecting anomalies
 #### a. Individual silhouettes are saved in the column sil_width
 ```{r}
 pamEval = data.frame(res.pam$silinfo$widths)
 head(pamEval)
 ```
+
 #### b. Requesting and filtering out negative silhouettes
 ##### If this happens in a research, the negative silhouette data are usually analyzed and the reasoning behind its anomaly is found. These data can be either removed or revisited and worked till positive silhouettes are obtained. However, revisiting or removing data is beyond the scope of this project.
 ```{r}
 pamEval[pamEval$sil_width<0,]
 ```
+
 ## Hierarchizing: agglomerative
 ### 1. Applying function
 #### "agnes" function constructs a hierarchy of clusters. Two indices that are similar are clustered together and this keeps on getting built until all the values are clustered.
@@ -86,14 +115,205 @@ res.agnes= hcut(Clus_Mydata2_Dist,
                 hc_func='agnes',
                 hc_method = "ward.D2")
 ```
-## 2. Evaluate results
-### 2.1 Reporting dendrogram
+
+## 2.Clustering results
+### 2.1 Add results to the original data frame
+```{r}
+mydata2$agn=as.factor(res.agnes$cluster)
+```
+
+### 2.2 Query data frame as required. Some examples are given here
+#### Example 1
+```{r}
+mydata2[mydata2$agn==1,'Country']
+```
+
+#### Example 2
+```{r}
+mydata2[mydata2$Country=="Ukraine",'pam']
+```
+
+### 2.3 Reporting table of clusters
+```{r}
+table(mydata2$agn)
+```
+
+## 3. Evaluate results
+### 3.1 Reporting dendrogram
 #### The hierarchy of clusters produced by agnes function is displayed as dendrogram
 ```{r}
 library(factoextra)
 library(ggplot2)
 fviz_dend(res.agnes,k=NumCluster, cex = 0.7, horiz = T)
 ```
+
+### 3.2 Reporting average silhouettes
+```{r}
+library(factoextra)
+fviz_silhouette(res.agnes)
+```
+
+### Detecting anomalies
+#### a. Saving silhouettes
+```{r}
+agnEval=data.frame(res.agnes$silinfo$widths)
+head(agnEval)
+```
+
+#### b. Finding negative silhouettes
+```{r}
+agnEval[agnEval$sil_width<0,]
+```
+
+## Hierarchizing: Divisive
+### 1. Applying function
+#### "diana" function constructs a hierarchy of clusters returning an object of class "diana"
+```{r}
+library(factoextra)
+
+res.diana= hcut(Clus_Mydata2_Dist, 
+                k = NumCluster,
+                hc_func='diana',
+                hc_method = "ward.D")
+```
+
+## 2.Clustering results
+### 2.1 Add results to the original data frame
+```{r}
+mydata2$dia=as.factor(res.diana$cluster)
+```
+
+### 2.2 Query data frame as required. Some examples are given here
+#### Example 1
+```{r}
+mydata2[mydata2$dia==1,'Country']
+```
+
+#### Example 2
+```{r}
+mydata2[mydata2$Country=="Ukraine",'pam']
+```
+
+### 2.3 Reporting table of clusters
+```{r}
+table(mydata2$dia)
+```
+
+## 3. Evaluate results
+### 3.1 Reporting dendrogram
+#### The hierarchy of clusters produced by diana function is displayed as dendrogram
+```{r}
+library(factoextra)
+library(ggplot2)
+fviz_dend(res.diana,k=NumCluster, cex = 0.7, horiz = T)
+```
+
+### 3.2 Reporting average silhouettes
+```{r}
+library(factoextra)
+fviz_silhouette(res.diana)
+```
+
+### Detecting anomalies
+#### a. Saving silhouettes
+```{r}
+diaEval=data.frame(res.diana$silinfo$widths)
+head(diaEval)
+```
+
+#### b. Finding negative silhouettes
+```{r}
+diaEval[diaEval$sil_width<0,]
+```
+
+### 2.2 Density based clustering
+#### Generated by inputting the distance and minimal number of neighbors that form a cluster
+```{r}
+library(dbscan)
+#minNeighs>= num cols in data
+minNeighs=4
+kNNdistplot(Clus_Mydata2_Dist, k = minNeighs)
+abline(h=0.3, col = "red", lty=2)
+```
+
+### 2.3 Reporting Clusters
+#### To find the number of clusters produced for similar values and the outliers present, we used "dbscan" function in the dbscan library
+```{r}
+distance=0.3
+res.db = dbscan::dbscan(Clus_Mydata2_Dist, 
+                        eps=distance, 
+                        minPts=minNeighs)
+res.db
+```
+
+#### Saving results in the original data frame
+```{r}
+mydata2$db=as.factor(res.db$cluster)
+```
+
+## Comparing different clusters
+### 1. We start by preparing a bidimensional map
+```{r}
+projectedData = cmdscale(Clus_Mydata2_Dist, k=2)
+mydata2$dim1 = projectedData[,1]
+mydata2$dim2 = projectedData[,2]
+```
+
+### 2. Visualizing the map
+```{r}
+base= ggplot(data=mydata2,
+             aes(x=dim1, y=dim2,
+                 label=Country)) 
+base + geom_text(size=2)
+```
+
+#### Plotting PAM results
+```{r}
+pamPlot=base + labs(title = "PAM") + geom_point(size=2,
+                                              aes(color=pam),
+                                              show.legend = F)
+```
+
+#### Plotting hierarchical agnes results
+```{r}
+agnPlot=base + labs(title = "AGNES") + geom_point(size=2,
+                                              aes(color=agn),
+                                              show.legend = F) 
+```
+
+#### Plotting divisive diana results
+```{r}
+diaPlot=base + labs(title = "DIANA") + geom_point(size=2,
+                                              aes(color=dia),
+                                              show.legend = F) 
+```
+
+#### Comparing all the three plots visually
+```{r}
+library(ggpubr)
+ggarrange(pamPlot, agnPlot, diaPlot, ncol = 3)
+```
+
+#### Plotting results from DBSCAN
+```{r}
+dbPlot= base + labs(title = "DBSCAN") + geom_point(aes(color=db),
+                                               show.legend = T) 
+dbPlot
+```
+
+#### Annotating
+```{r}
+library(ggrepel)
+dbPlot + geom_text_repel(size=3,aes(label=Country), max.overlaps = 200)
+```
+
+#### Annotating only the outliers
+```{r}
+LABEL=ifelse(mydata2$db==0,mydata2$Country,"")
+
+dbPlot + geom_text_repel(aes(label=LABEL), max.overlaps = 200)
+```
+
 
 
 
